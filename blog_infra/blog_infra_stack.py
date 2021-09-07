@@ -5,11 +5,31 @@ from aws_cdk import core as cdk
 # with examples from the CDK Developer's Guide, which are in the process of
 # being updated to use `cdk`.  You may delete this import if you don't need it.
 from aws_cdk import core
+from blog_infra.static_stack import StaticStack
 
 
 class BlogInfraStack(cdk.Stack):
 
-    def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope, construct_id, props, **kwargs):
         super().__init__(scope, construct_id, **kwargs)
 
-        # The code that defines your stack goes here
+        site = StaticStack(
+            self,
+            f"{props['namespace']}-construct",
+            site_bucket_name=props["bucket_name"],
+            #domain_certificate_arn=props["domain_certificate_arn"],
+            #domain_name=props["domain_name"],
+            #sub_domain_name=props["sub_domain_name"],
+        )
+
+        # Add stack outputs
+        cdk.CfnOutput(
+            self,
+            "SiteBucketName",
+            value=site.bucket.bucket_name,
+        )
+        cdk.CfnOutput(
+            self,
+            "DistributionId",
+            value=site.distribution.distribution_id,
+        )
