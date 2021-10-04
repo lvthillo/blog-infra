@@ -9,7 +9,7 @@ setuptools.setup(
     name="blog_infra",
     version="0.0.1",
 
-    description="An empty CDK Python app",
+    description="My static website using CDK",
     long_description=long_description,
     long_description_content_type="text/markdown",
 
