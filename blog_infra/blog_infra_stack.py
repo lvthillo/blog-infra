@@ -18,8 +18,6 @@ class BlogInfraStack(cdk.Stack):
             f"{props['namespace']}-construct",
             site_bucket_name=props["bucket_name"],
             domain_name=props["domain_name"],
-            #hosted_zone_id=props["hosted_zone_id"],
-            #hosted_zone_name=props["hosted_zone_name"],
         )
 
         # Add stack outputs
@@ -28,8 +26,13 @@ class BlogInfraStack(cdk.Stack):
             "SiteBucketName",
             value=site.bucket.bucket_name,
         )
-        #cdk.CfnOutput(
-        #    self,
-        #    "DistributionId",
-        #    value=site.distribution.distribution_id,
-        #)
+        cdk.CfnOutput(
+            self,
+            "DistributionId",
+            value=site.distribution.distribution_id,
+        )
+        cdk.CfnOutput(
+            self,
+            "CertificateArn",
+            value=site.certificate.certificate_arn,
+        )

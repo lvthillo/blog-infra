@@ -13,8 +13,6 @@ props = {
     "namespace": "blog",
     "bucket_name": app.node.try_get_context("bucket_name"),
     "domain_name": app.node.try_get_context("domain_name"),
-    #"hosted_zone_id": app.node.try_get_context("hosted_zone_id"),
-    #"hosted_zone_name": app.node.try_get_context("hosted_zone_name"),
 }
 
 env = cdk.Environment(
