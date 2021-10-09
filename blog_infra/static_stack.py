@@ -14,8 +14,6 @@ class StaticStack(cdk.Construct):
         scope,
         construct_id,
         domain_name,
-        #hosted_zone_id,
-        #hosted_zone_name,
         site_bucket_name=None,
         **kwargs,
     ):
@@ -24,19 +22,18 @@ class StaticStack(cdk.Construct):
         # Instance variables
         self.__site_bucket_name = site_bucket_name
         self.__domain_name = domain_name
-        #self.__hosted_zone_id = hosted_zone_id
-        #self.__hosted_zone_name = hosted_zone_name
+        self.__www_domain_name = 'www.%s' % self.__domain_name
 
         # Public variables
         self.bucket = None
         self.certificate = None
-        #self.distribution = None
 
         # Create the S3 bucket for the site contents
         self.__create_site_bucket()
 
-        # Create CloudFront function to set security headers
-        security_headers = self.__create_cloudfront_function()
+        # Create CloudFront function to set security headers + redirect www
+        security_headers = self.__create_cloudfront_function_security_headers()
+        redirect = self.__create_cloudfront_function_redirect()
 
         # Get the hosted zone based on the provided domain name
         hosted_zone = self.__get_hosted_zone()
@@ -45,10 +42,14 @@ class StaticStack(cdk.Construct):
         self.__create_certificate(hosted_zone)
 
         # Create the cloud front distribution
-        self.__create_cloudfront_distribution(security_headers)
+        self.__create_cloudfront_distribution(security_headers, redirect)
 
-        # Create a Route53 record
-        self.__create_route53_record(hosted_zone)
+        # Create a Route53 alias record
+        alias = self.__create_route53_a_record(hosted_zone)
+
+        # Create CNAME which depends on alias record
+        self.__create_route53_cname_record(hosted_zone, alias)
+
 
     def __create_site_bucket(self):
         """Create the S3 bucket for the static site construct
@@ -65,7 +66,7 @@ class StaticStack(cdk.Construct):
             auto_delete_objects=False,
         )
 
-    def __create_cloudfront_distribution(self, security_headers):
+    def __create_cloudfront_distribution(self, security_headers, redirect):
         """Create a cloudfront distribution with site bucket as the origin"""
 
         self.distribution = cloudfront.Distribution(
@@ -78,15 +79,19 @@ class StaticStack(cdk.Construct):
                     cloudfront.FunctionAssociation(
                         event_type=cloudfront.FunctionEventType.VIEWER_RESPONSE,
                         function=security_headers,
+                    ),
+                    cloudfront.FunctionAssociation(
+                        event_type=cloudfront.FunctionEventType.VIEWER_REQUEST,
+                        function=redirect,
                     )
                 ]
             ),
-            domain_names=[self.__domain_name],
+            domain_names=[self.__domain_name,self.__www_domain_name],
             certificate=self.certificate,
             default_root_object="index.html",
         )
 
-    def __create_cloudfront_function(self):
+    def __create_cloudfront_function_security_headers(self):
         """todo"""
         security_headers = cloudfront.Function(
             self,
@@ -97,13 +102,24 @@ class StaticStack(cdk.Construct):
         )
         return security_headers
 
+    def __create_cloudfront_function_redirect(self):
+        """todo"""
+        redirect = cloudfront.Function(
+            self,
+            "redirect",
+            code=cloudfront.FunctionCode.from_file(
+                file_path="lambda/redirect.js",
+            ),
+        )
+        return redirect
+
     def __get_hosted_zone(self):
         return route53.HostedZone.from_lookup(
             self, "hosted_zone", domain_name=self.__domain_name
         )
 
-    def __create_route53_record(self, hosted_zone):
-        route53.ARecord(
+    def __create_route53_a_record(self, hosted_zone):
+        a = route53.ARecord(
             self,
             "site-alias-record",
             record_name=self.__domain_name,
@@ -112,10 +128,21 @@ class StaticStack(cdk.Construct):
                 targets.CloudFrontTarget(self.distribution)
             ),
         )
+        return a 
+
+    def __create_route53_cname_record(self, hosted_zone, b):
+        route53.ARecord(
+            self,
+            "site-alias-www-record",
+            record_name=self.__www_domain_name,
+            zone=hosted_zone,
+            target=route53.RecordTarget.from_alias(targets.Route53RecordTarget(b))
+        )
 
     def __create_certificate(self, hosted_zone):
         self.certificate = acm.DnsValidatedCertificate(self, 'CrossRegionCertificate',
             domain_name=self.__domain_name,
+            subject_alternative_names=[self.__domain_name, self.__www_domain_name],
             hosted_zone=hosted_zone,
             region='us-east-1',
         )
