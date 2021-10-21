@@ -143,9 +143,6 @@ class StaticStack(cdk.Construct):
             domain_name=self.__domain_name,
             zone=hosted_zone,
             record_name=self.__www_domain_name
-            #record_name=self.__www_domain_name,
-            #zone=hosted_zone,
-            #target=route53.RecordTarget.from_alias(targets.Route53RecordTarget(b))
         )
 
     def __create_certificate(self, hosted_zone):
