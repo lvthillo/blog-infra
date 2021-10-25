@@ -17,7 +17,7 @@ function handler(event) {
             statusCode: 301,
             statusDescription: 'Moved Permanently',
             headers: { 
-                'location': { "value": `https://lvthillo.com${request.uri}` } 
+                'location': { "value": `https://lvthillo.com${uri}` } 
             }
         };
 
