@@ -80,8 +80,9 @@ export class BlogInfraStack extends Construct {
         securityHeadersBehavior: {
           contentSecurityPolicy: {
             contentSecurityPolicy:
-              "default-src 'none'; img-src 'self' https://www.google-analytics.com; script-src 'self' 'unsafe-inline' https://www.google-analytics.com https://ssl.google-analytics.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; object-src 'none'; connect-src https://www.google-analytics.com; form-action 'self'",
-            override: true,
+             //"default-src 'none'; img-src 'self' https://www.google-analytics.com; script-src 'self' 'unsafe-inline' https://*.googletagmanager.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; object-src 'none'; connect-src https://www.google-analytics.com; form-action 'self'",
+              "default-src 'none'; script-src 'self' https://*.googletagmanager.com 'unsafe-inline'; img-src 'self' https://*.google-analytics.com https://*.googletagmanager.com; connect-src https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; object-src 'none'; form-action 'self'",
+              override: true,
           },
           contentTypeOptions: { override: true },
           frameOptions: {
