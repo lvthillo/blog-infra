@@ -2,7 +2,7 @@ function handler(event) {
     var request = event.request;
     var host = request.headers.host.value;
     var uri = request.uri;
-    
+
     // Check whether the URI is missing a file name.
     if (uri.endsWith('/')) {
         request.uri += 'index.html';
@@ -12,12 +12,14 @@ function handler(event) {
         request.uri += '/index.html';
     }
 
-    if (host === 'www.lvthillo.com') {    
+    if (host.startsWith('www')) {
+        // Cut www. from host
+        var redirect_host = host.split("www.").pop();
         var response = {
             statusCode: 301,
             statusDescription: 'Moved Permanently',
             headers: { 
-                'location': { "value": `https://lvthillo.com${uri}` } 
+                'location': { "value": `https://${redirect_host}${uri}` } 
             }
         };
 
