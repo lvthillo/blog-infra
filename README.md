@@ -3,7 +3,7 @@
 ## Prerequisites
 * Route53 hosted zone which matches your domain.
 
-## Deploy Static website
+## Deploy static website
 ```
 $ cdk deploy -c domain=lvthillo.com 
 ```
